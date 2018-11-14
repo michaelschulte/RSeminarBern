@@ -20,6 +20,12 @@ library('data.table')
 all_subjects <- as.data.frame(rbindlist(lapply(list.files(path=getwd(), 
                         pattern = '[[:digit:]]_[[:alpha:]]*.*.csv'), read.csv)))
 
+#change values of sex_r and age
+placeholder <- all_subjects$sex_r
+all_subjects$sex_r <- all_subjects$age
+all_subjects$age <- placeholder
+placeholder <- NULL
+
 #Process the exclusions we can detect automatically from the data
 excluded_subjs <- all_subjects$subjID[all_subjects$age < 18 | all_subjects$age > 24 |
                                       as.character(all_subjects$year) == 'not a student' |
