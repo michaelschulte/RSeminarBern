@@ -1,7 +1,7 @@
 ---
 title: 'Datenanalyse für die RRR "Professor-Priming"-Studie des Schulte-Lab'
-author: "Interfakultäres Seminar: Bessere Forschung machen:"
-subtitle: Replikation, Reproduzierbarkeit und Open Science
+author: Replikation, Reproduzierbarkeit und Open Science'
+subtitle: "Interfakultäres Seminar: 'Bessere Forschung machen:"
 
 output: pdf_document
 ---
@@ -26,13 +26,8 @@ profdata <- read_csv("Schulte_data_complete.csv") %>%
          year = as.factor(year),
          link_yn = as.factor(link_yn),
          thinking_yn = as.factor(thinking_yn),
-         prior_hool = as.factor(prior_hool)) %>% 
-  rename(prof_int = UniversitÃ.tsprofessor_int_rating,
-         prof_acc = UniversitÃ.tsprofessor_acc_rating,
-         hool_int = FuÃ.ballhooligan_int_rating,
-         hool_acc = FuÃ.ballhooligan_acc_rating)
+         prior_hool = as.factor(prior_hool))
 
-head(profdata)
 ```
 
 
@@ -40,9 +35,7 @@ head(profdata)
 ## 2. T-Test
 
 ```{r}
-testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, age, link_yn, thinking_yn, prior_hool, prof_int, prof_acc, hool_int, hool_acc, correct_raw, correct_pct)
-
-summary(testdata)
+testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, age, link_yn, thinking_yn, prior_hool, correct_raw, correct_pct)
 
 
 table(testdata$prime_code, testdata$sex_r)
@@ -74,14 +67,14 @@ summary(model1)
 Anova(model1, type = 3)
 
 library(jmv)
-ttestIS(data = testdata,
-    vars = "correct_pct",
-    group = "prime_code",
-    eqv = TRUE,
-    meanDiff = TRUE,
-    effectSize = TRUE,
-    ci = TRUE,
-    desc = TRUE,
-    plots = TRUE)
+#ttestIS(data = testdata,
+#    vars = "correct_pct",
+#    group = "prime_code",
+#    eqv = TRUE,
+#    meanDiff = TRUE,
+#    effectSize = TRUE,
+#    ci = TRUE,
+#    desc = TRUE,
+#    plots = TRUE)
 ```
 
