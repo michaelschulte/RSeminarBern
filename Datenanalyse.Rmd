@@ -1,0 +1,167 @@
+---
+title: 'Datenanalyse für die Replikationsstudie "Professor-Priming"'
+author: "Interfakultäres Seminar: Bessere Forschung machen:"
+subtitle: Replikation, Reproduzierbarkeit und Open Science
+
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      fig.height = 4, fig.width = 7, cache = TRUE)
+```
+
+
+## 1. Daten einlesen
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(haven)
+profdata <- read_csv("RawData/LABNAME_data_complete.csv") %>%
+  mutate(Sex = as.factor(Sex),
+         sex_r = as.factor(sex_r),
+         prime_condition = as.factor(prime_condition),
+         year = as.factor(year),
+         link_yn = as.factor(link_yn),
+         thinking_yn = as.factor(thinking_yn),
+         prior_hool = as.factor(prior_hool)) %>% 
+  rename(prof_int = Universitätsprofessor_int_rating,
+         prof_acc = Universitätsprofessor_acc_rating,
+         hool_int = Fußballhooligan_int_rating,
+         hool_acc = Fußballhooligan_acc_rating)
+
+profdata
+
+trivia <- profdata %>%
+  select(ends_with("correct")) %>% 
+  transmute_all(as.numeric) %>% 
+  drop_na()
+```
+
+
+## 2. Reliabilitätsanalyse
+
+```{r}
+library(psych)
+trivia <- as.data.frame(trivia)
+alpha(trivia)
+
+# Remove items with r.drop < .10
+trivia_red <- trivia %>%
+  select(-c(triv3_correct, triv6_correct, triv9_correct, triv13_correct, triv14_correct, triv20_correct, triv24_correct))  
+alpha(trivia_red) # raises alpha from 0.52 to 0.62 by removing trivia items with negative or no relation with total 
+
+# Remove items with r.drop < .15
+trivia_red2 <- trivia %>%
+  select(-c(triv2_correct, triv3_correct, triv4_correct, triv6_correct, triv9_correct, triv13_correct, triv14_correct, 
+            triv18_correct, triv20_correct, triv22_correct, triv23_correct, triv24_correct, triv29_correct))  
+alpha(trivia_red2) # führt wieder zu einer Verschlechterung von alpha -> bringt nichts
+```
+
+
+## 3. T-Test
+
+```{r}
+
+# Build new variables correct_raw_red and correct_pct_red
+profdata <- profdata %>% mutate(correct_raw_red = triv1_correct + triv2_correct + triv4_correct + triv5_correct + triv7_correct  + 
+                                          triv8_correct + triv10_correct + triv11_correct + triv12_correct + triv15_correct +
+                                          triv16_correct + triv17_correct + triv18_correct + triv19_correct + triv21_correct +
+                                          triv22_correct + triv23_correct + triv25_correct + triv26_correct + triv27_correct +
+                                          triv28_correct + triv29_correct,
+                                correct_pct_red = correct_raw_red/22*100)
+names(profdata)
+
+# Reduced dataset for tests
+testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, age, link_yn, thinking_yn, prior_hool, prof_int, prof_acc, hool_int, hool_acc, correct_raw, correct_pct, correct_raw_red, correct_pct_red)
+
+summary(testdata)
+sort(testdata$age) # look for Pensionaere
+
+# Check sex distribution across prime conditions
+table(testdata$prime_condition, testdata$sex_r)
+
+# Descriptive stats by group
+testdata %>% 
+  group_by(prime_condition, sex_r) %>% 
+  summarise(corr_pct_M = round(mean(correct_pct), 2),
+            corr_pct_SD = round(sd(correct_pct), 2))
+
+  
+# T-Tests (raw and percentage)
+library(car)
+leveneTest(testdata$correct_raw, testdata$prime_condition, center = median)
+t.test(correct_raw ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata)
+t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata)
+
+# T-Tests (reduced trivia variable / percentage)
+leveneTest(testdata$correct_pct_red, testdata$prime_condition, center = median)
+t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata)
+
+# 2-factorial ANOVA
+model1 <- lm(correct_raw ~ prime_condition*sex_r, data = testdata)
+summary(model1)
+Anova(model1, type = 3)
+
+# T-Test again incl. Cohen's d
+jmv::ttestIS(
+    data = testdata,
+    vars = "correct_pct",
+    group = "prime_code",
+    eqv = TRUE,
+    meanDiff = TRUE,
+    effectSize = TRUE,
+    ci = TRUE,
+    desc = TRUE,
+    plots = TRUE)
+
+# CI for Cohen's d
+library(psych)
+cohen.d.ci(0.328, n1 = 30, n2 = 49, alpha = 0.10)
+
+# Power analysis for small telescopes approach (Dijksterhuis and Schulte data) (setzt hier eig. equal n voraus...)
+library(pwr)
+dijkster_tel <- pwr.t.test(n = 22, d = NULL, sig.level = 0.05, power = 0.33, 
+    type = c("two.sample"),
+    alternative = c("less"))
+
+schulte_tel <- pwr.t.test(n = 55, d = NULL, sig.level = 0.05, power = 0.33, 
+    type = c("two.sample"),
+    alternative = c("less"))
+
+dijkster_tel
+schulte_tel
+
+# CI for Cohen's d
+library(psych)
+cohen.d.ci(0.328, n1 = 30, n2 = 49, alpha = 0.10) # mit jetzigen Daten sowohl dijkster_tel als auch schulte_tel nicht im CI
+
+
+
+# Berechnung von Cohen's d aus Dijksterhuis (1998)
+d_dijkster <- sqrt(7.09)*sqrt((21 + 22)/(21*22))
+d_dijkster
+
+# Vermutlich korrektere Version da für dfs des 2-faktoriellen Designs bei Dijksterhuis angepasst
+d_dijkster_2 <- sqrt(7.09)*sqrt((20 + 21)/(20*21))
+d_dijkster_2
+
+```
+```{r}
+# Weitere Analysen ohne Pensionaere, Leute, die Einfluss annahmen sowie Leute, die "Hool" nicht kannten
+
+testdata_clean <- testdata %>% 
+  filter(age <= 33 & thinking_yn == "nein" & prior_hool == "ja")
+write_csv(x = testdata_clean, path = "RawData/testdata_clean.csv")
+
+testdata_clean
+leveneTest(testdata_clean$correct_pct_red, testdata_clean$prime_condition, center = median)
+t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata_clean)
+t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata_clean)
+
+# Bayesuianische Analyse in JASP! Lade ich heute noch auf OSF
+
+```
+
+\newpage
+

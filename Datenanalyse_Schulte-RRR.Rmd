@@ -1,0 +1,87 @@
+---
+title: 'Datenanalyse für die RRR "Professor-Priming"-Studie des Schulte-Lab'
+author: "Interfakultäres Seminar: Bessere Forschung machen:"
+subtitle: Replikation, Reproduzierbarkeit und Open Science
+
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      fig.height = 4, fig.width = 7, cache = TRUE)
+```
+
+
+## 1. Daten einlesen
+
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(haven)
+profdata <- read_csv("Schulte_data_complete.csv") %>%
+  mutate(Sex = as.factor(Sex),
+         sex_r = as.factor(sex_r),
+         prime_condition = as.factor(prime_condition),
+         prime_code = as.factor(prime_code),
+         year = as.factor(year),
+         link_yn = as.factor(link_yn),
+         thinking_yn = as.factor(thinking_yn),
+         prior_hool = as.factor(prior_hool)) %>% 
+  rename(prof_int = UniversitÃ.tsprofessor_int_rating,
+         prof_acc = UniversitÃ.tsprofessor_acc_rating,
+         hool_int = FuÃ.ballhooligan_int_rating,
+         hool_acc = FuÃ.ballhooligan_acc_rating)
+
+head(profdata)
+```
+
+
+
+## 2. T-Test
+
+```{r}
+testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, age, link_yn, thinking_yn, prior_hool, prof_int, prof_acc, hool_int, hool_acc, correct_raw, correct_pct)
+
+summary(testdata)
+
+
+table(testdata$prime_code, testdata$sex_r)
+
+
+testdata %>% 
+  group_by(prime_code, sex_r) %>% 
+  summarise(corr_pct_M = round(mean(correct_pct), 2),
+            corr_pct_SD = round(sd(correct_pct), 2),
+            n = n())
+testdata %>% 
+  group_by(prime_code) %>% 
+  summarise(corr_pct_M = round(mean(correct_pct), 2),
+            corr_pct_SD = round(sd(correct_pct), 2),
+            n = n())
+  
+
+library(car)
+leveneTest(testdata$correct_raw, testdata$prime_code, center = median)
+
+t.test(correct_pct ~ prime_code, var.equal = TRUE, alternative = "less", data = testdata)
+t.test(correct_pct ~ prime_code, var.equal = TRUE, data = testdata)
+
+
+model1 <- lm(correct_raw ~ prime_code*sex_r, data = testdata)
+
+summary(model1)
+
+Anova(model1, type = 3)
+
+library(jmv)
+ttestIS(data = testdata,
+    vars = "correct_pct",
+    group = "prime_code",
+    eqv = TRUE,
+    meanDiff = TRUE,
+    effectSize = TRUE,
+    ci = TRUE,
+    desc = TRUE,
+    plots = TRUE)
+```
+
