@@ -3,7 +3,7 @@ title: 'Datenanalyse für die Replikationsstudie "Professor-Priming"'
 author: Replikation, Reproduzierbarkeit und Open Science'
 subtitle: "Interfakultäres Seminar: 'Bessere Forschung machen:"
 
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
