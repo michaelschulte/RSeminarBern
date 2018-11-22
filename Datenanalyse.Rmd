@@ -1,9 +1,9 @@
 ---
 title: 'Datenanalyse für die Replikationsstudie "Professor-Priming"'
-author: Replikation, Reproduzierbarkeit und Open Science'
-subtitle: "Interfakultäres Seminar: 'Bessere Forschung machen:"
+author: M. Schulte, B. Mayer, J. Hupfeld, S. Thoma, C. Zurbrügg
+subtitle: 'Interfakultäres Seminar "Bessere Forschung machen: Replikation, Reproduzierbarkeit und Open Science"'
 
-output: html_document
+output: slidy_presentation
 ---
 
 ```{r setup, include=FALSE}
@@ -29,7 +29,7 @@ profdata <- read_csv("RawData/LABNAME_data_complete.csv") %>%
          hool_int = Fußballhooligan_int_rating,
          hool_acc = Fußballhooligan_acc_rating)
 
-profdata
+head(profdata)
 
 trivia <- profdata %>%
   select(ends_with("correct")) %>% 
@@ -71,7 +71,8 @@ profdata <- profdata %>% mutate(correct_raw_red = triv1_correct + triv4_correct 
 names(profdata)
 
 # Reduced dataset for tests
-testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, age, link_yn, thinking_yn, prior_hool, prof_int, prof_acc, hool_int, hool_acc, correct_raw, correct_pct, correct_raw_red, correct_pct_red)
+testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, age, link_yn, thinking_yn, prior_hool, prof_int, 
+                                prof_acc, hool_int, hool_acc, correct_raw, correct_pct, correct_raw_red, correct_pct_red)
 
 summary(testdata)
 sort(testdata$age) # look for Pensionaere
@@ -85,7 +86,19 @@ testdata %>%
   summarise(corr_pct_M = round(mean(correct_pct), 2),
             corr_pct_SD = round(sd(correct_pct), 2))
 
-# one nice figure performance X gender
+# Trivia distribution
+p <- testdata %>% 
+    select(correct_raw, correct_raw_red, prime_condition) %>%
+    drop_na() %>% 
+    ggplot(mapping = aes(x = correct_raw, y = ..density..,fill = prime_condition))
+
+p + geom_histogram(binwidth = 2, 
+                   position = "identity",
+                   alpha = 0.8) +
+  facet_wrap(~ prime_condition)
+
+
+# one nice figure prime X gender
 ggplot(testdata, aes(sex_r, correct_pct, group = prime_condition, colour = prime_condition)) +
     stat_summary(geom = "point", fun.y = mean, position = position_dodge(width = 0.1)) +
     stat_summary(geom = "errorbar", fun.data = mean_se, width = 0.1, position = position_dodge(width = 0.1)) +
@@ -117,16 +130,16 @@ Anova(model1, type = 3)
 
 # T-Test again incl. Cohen's d
 library(jmv)
-# ttestIS(
-#    data = testdata,
-#    vars = c("correct_pct","correct_pct_red"),
-#    group = "prime_code",
-#    eqv = TRUE,
-#    meanDiff = TRUE,
-#    effectSize = TRUE,
-#    ci = TRUE,
-#    desc = TRUE,
-#    plots = TRUE)
+ ttestIS(
+    data = testdata,
+    vars = c("correct_pct","correct_pct_red"),
+    group = "prime_code",
+    eqv = TRUE,
+    meanDiff = TRUE,
+    effectSize = TRUE,
+    ci = TRUE,
+    desc = TRUE,
+    plots = TRUE)
 ```
 
 ## 5. Effektgroessen & Power
@@ -146,8 +159,11 @@ schulte_tel <- pwr.t.test(n = 55, d = NULL, sig.level = 0.05, power = 0.33,
     type = c("two.sample"),
     alternative = c("less"))
 
-dijkster_tel
-schulte_tel
+dijkster_tel  # jpower: -0.3738 (n1 = 21, n2 = 22) statt wie hier: -0.3693
+schulte_tel   # jpower: -0.2322 (n1 = 50, n2 = 60) statt wie hier: -0.2312
+
+
+
 
 # CI for Cohen's d
 library(psych)
@@ -156,13 +172,7 @@ cohen.d.ci(c(0.288, 0.272), n1 = c(33, 33), n2 = c(52, 52), alpha = 0.10)
 
 
 # Berechnung von Cohen's d aus Dijksterhuis (1998)
-d_dijkster <- sqrt(7.09)*sqrt((21 + 22)/(21*22))
-d_dijkster
-
-# Vermutlich korrektere Version da für dfs des 2-faktoriellen Designs bei Dijksterhuis angepasst
-d_dijkster_2 <- sqrt(7.09)*sqrt((20 + 21)/(20*21))
-d_dijkster_2
-
+sqrt(7.09)*sqrt((21 + 22)/(21*22))
 ```
 
 ## 6. Analysen mit 'clean' data
