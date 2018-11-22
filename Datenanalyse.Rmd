@@ -1,6 +1,6 @@
 ---
 title: 'Datenanalyse für die Replikationsstudie "Professor-Priming"'
-author: M. Schulte, B. Mayer, J. Hupfeld, S. Thoma, C. Zurbrügg
+author: B. Mayer, S. Thoma, M. Schulte-Mecklenbeck, J. Hupfeld,  C. Zurbrügg
 subtitle: 'Interfakultäres Seminar "Bessere Forschung machen: Replikation, Reproduzierbarkeit und Open Science"'
 
 output: slidy_presentation

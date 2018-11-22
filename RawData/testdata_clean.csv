@@ -25,7 +25,6 @@ Subject.ID,sex_r,prime_code,prime_condition,age,link_yn,thinking_yn,prior_hool,p
 132,weiblich,0,Fußballhooligan,24,ja,nein,ja,79,18,58,16,19,63.3333333333333,14,66.66666666666666
 133,männlich,1,Universitätsprofessor,21,nein,nein,ja,21,4,81,26,12,40,9,42.857142857142854
 134,weiblich,1,Universitätsprofessor,21,ja,nein,ja,29,8,72,17,16,53.3333333333333,13,61.904761904761905
-135,männlich,1,Universitätsprofessor,25,ja,nein,ja,39,13,70,15,15,50,10,47.61904761904761
 136,männlich,1,Universitätsprofessor,30,nein,nein,ja,1,6,42,16,15,50,6,28.57142857142857
 137,weiblich,1,Universitätsprofessor,30,nein,nein,ja,31,5,86,19,21,70,15,71.42857142857143
 138,weiblich,0,Fußballhooligan,28,nein,nein,ja,60,15,40,15,21,70,17,80.95238095238095
@@ -35,7 +34,6 @@ Subject.ID,sex_r,prime_code,prime_condition,age,link_yn,thinking_yn,prior_hool,p
 144,weiblich,0,Fußballhooligan,21,nein,nein,ja,85,15,43,8,17,56.6666666666667,13,61.904761904761905
 148,männlich,1,Universitätsprofessor,21,nein,nein,ja,25,10,80,23,20,66.6666666666667,13,61.904761904761905
 150,weiblich,0,Fußballhooligan,25,nein,nein,ja,70,25,60,19,12,40,8,38.095238095238095
-152,weiblich,1,Universitätsprofessor,24,ja,nein,ja,37,7,75,20,19,63.3333333333333,16,76.19047619047619
 155,weiblich,1,Universitätsprofessor,23,nein,nein,ja,31,3,65,21,21,70,17,80.95238095238095
 157,männlich,1,Universitätsprofessor,26,ja,nein,ja,50,15,50,15,23,76.6666666666667,17,80.95238095238095
 158,männlich,0,Fußballhooligan,31,ja,nein,ja,62,20,44,12,22,73.3333333333333,17,80.95238095238095
@@ -54,7 +52,6 @@ Subject.ID,sex_r,prime_code,prime_condition,age,link_yn,thinking_yn,prior_hool,p
 176,weiblich,1,Universitätsprofessor,23,ja,nein,ja,20,10,90,25,20,66.6666666666667,15,71.42857142857143
 177,männlich,1,Universitätsprofessor,21,nein,nein,ja,60,15,80,22,19,63.3333333333333,14,66.66666666666666
 179,weiblich,1,Universitätsprofessor,19,nein,nein,ja,50,10,70,25,13,43.3333333333333,9,42.857142857142854
-182,weiblich,1,Universitätsprofessor,23,ja,nein,ja,48,12,59,19,17,56.6666666666667,12,57.14285714285714
 183,weiblich,1,Universitätsprofessor,25,ja,nein,ja,0,15,70,15,17,56.6666666666667,13,61.904761904761905
 184,weiblich,1,Universitätsprofessor,24,ja,nein,ja,50,15,55,17,21,70,16,76.19047619047619
 185,weiblich,1,Universitätsprofessor,22,ja,nein,ja,40,15,60,16,17,56.6666666666667,13,61.904761904761905
