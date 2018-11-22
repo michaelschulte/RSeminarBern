@@ -1,11 +1,7 @@
-#A script to analyze an idividual lab's replication results.
 #This script binds all individual subject data into a single
-#file and saves it out in raw form, and also saves out a results
-#file that includes effects, confidence intervals, and summary statistics.
+#file and saves it out in raw form.
 
-#Vers. 1.01
-#Created by Katherine Wood 
-#Modified by Stefan Thoma for the Replication Seminar at the UniBe
+#Vers. 1.02
 
 #November 2018
 
@@ -45,37 +41,21 @@ all_answers <- c("Botswana", "ASCII", "Wasserschwein","Erde","12", "Indien","Arm
                   "Strahlung", "Deep Blue", "Kontinentalsockel","Faschismus","Penicillin", "Pablo Picasso",
                   "29", "Im Rachen", "Sibirien", "Jupiter", "Tschaikowski",
                   "Luftdruck", "Keratin", "Frankreich")
+#exclude subjects based on their answer in "purpose" variable.
+#print(all_subjects$purpose) #39, 40 and 41 have to be excluded. 27 maybe.
+#(potentially) problematic answers
+ppa <- c("Eignungstest als Professor", "Erfahren, inwiefern die innere Haltung als \"Professor\" die Performance im Wissenstest beeinflusst.",
+         "wenn man sich vorher als typischer Professor vorstellt, ist man besser im Wissenstest\n", "Priming von Stereotypen", 
+         "Ich glaube es ging um die Verbindung vom ersten Teil (Professor) mit dem zweiten Teil")
+dat <- all_subjects %>% dplyr::filter(!(purpose %in% ppa))
+#print(dat$prime_response)
 
-
-#Process the exclusions we can detect automatically from the data
-excluded_subjs <- all_subjects$subjID[all_subjects$age < 18 | all_subjects$age > 24 |
-                                      as.character(all_subjects$year) == 'not a student' |
-                                      is.na(all_subjects$prime_response)]
-
-#Determine number of trivia questions correct, number of trivia questions skipped,
-#percent correct, and percent correct calculated relative only to questions answered.
-#set chose only not-excluded subjects.
-if(is.null(excluded_subjs)){
-  dat <- data.frame(all_subjects, stringsAsFactors = FALSE)
-} else{
-dat <- all_subjects[!(all_subjects$subjID %in% excluded_subjs),]
-} 
-
-#shitty loop bc I need True as string and too tired to write it nicely... 
+#cool loop to verify all answers. 
 for(i in 1:length(corr_cols)){
-  # for(j in 1:length(dat$Subject.ID)){
-  #   dat[j,hupf_raw_cols[i]] <- as.character(dat[j,hupf_raw_cols[i]])
-  #   if(dat[j,hupf_raw_cols[i]] ==hupf_answers[i]){
-  #     dat[j,hupf_corr_cols[i]] <- as.character("True")
-  #   } else {dat[j,hupf_corr_cols[i]] <- as.character("False")}
-    
-    #if i would need true as boolean then this following line would be sufficient and no double loop were needed...
+
     dat[,corr_cols[i]] <- as.character(dat[,raw_cols[i]]) ==all_answers[i]
-  #}
+  
 }
-
-
-
 
 dat$correct_raw <- rowSums(dat[,corr_cols] == TRUE)
 
@@ -83,37 +63,12 @@ dat$correct_pct <- (dat$correct_raw/30) * 100
 
 dat$hupf_corr_pct <- (rowSums(dat[,hupf_corr_cols] == TRUE)/3)*100
 
-getwd()
+
 #Save out this data frame as a .csv
 #now first set the wd back to outside the folder
-setwd(qdap::beg2char(getwd(), char = "GitHub/RSeminarBern", include = TRUE))
+#setwd(qdap::beg2char(getwd(), char = "GitHub/RSeminarBern", include = TRUE))
 
 write.csv(dat, paste(labname, '_data_complete.csv', sep=''), row.names = FALSE)
-getwd()
 
-
-
-
-
-####ANALYSIS
-t.test(dat$correct_pct[dat$prime_condition=="Universitätsprofessor"], dat$correct_pct[dat$prime_condition=="Fußballhooligan"])
-ggplot2::ggplot(data = dat, ggplot2::aes(x = prime_condition)) +
-  geom_bar(stat = "count")
-ggplot2::ggplot(data = dat, ggplot2::aes(x = prime_condition, y = correct_pct)) +
-  geom_boxplot()
-
-
-hupf_boxplot <- ggplot2::ggplot(data = dat, ggplot2::aes(x = prime_condition, y = hupf_corr_pct)) +
-  geom_boxplot()
-hupf_ttest <- t.test(dat$hupf_corr_pct[dat$prime_condition=="Universitätsprofessor"], dat$hupf_corr_pct[dat$prime_condition=="Fußballhooligan"])
-
-
-
-#bayesian analysis
-#all
-bayes_ttest <- ttestBF(dat$correct_pct[dat$prime_condition=="Universitätsprofessor"], dat$correct_pct[dat$prime_condition=="Fußballhooligan"])  
-#ttestBF(formula = correct_pct ~ prime_condition, data = dat) would be the same but shorter and may be less comprehensive for beginners.
-#hupf items
-hupf_bayes_ttest <- ttestBF(dat$hupf_corr_pct[dat$prime_condition=="Universitätsprofessor"], dat$hupf_corr_pct[dat$prime_condition=="Fußballhooligan"])
 
 
