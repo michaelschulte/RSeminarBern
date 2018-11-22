@@ -84,6 +84,15 @@ testdata %>%
   group_by(prime_condition, sex_r) %>% 
   summarise(corr_pct_M = round(mean(correct_pct), 2),
             corr_pct_SD = round(sd(correct_pct), 2))
+
+# one nice figure performance X gender
+ggplot(testdata, aes(sex_r, correct_pct, group = prime_condition, colour = prime_condition)) +
+    stat_summary(geom = "point", fun.y = mean, position = position_dodge(width = 0.1)) +
+    stat_summary(geom = "errorbar", fun.data = mean_se, width = 0.1, position = position_dodge(width = 0.1)) +
+    ylim(0,100) +
+    xlab('Geschlecht') +
+    ylab('Prozent korrekt') +
+    theme_bw()
 ```
 
 ## 4. T-Tests

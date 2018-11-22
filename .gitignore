@@ -44,3 +44,4 @@ vignettes/*.pdf
 rsconnect/
 .Rproj.user2
 
+.Rproj.user
