@@ -51,7 +51,8 @@ all_answers <- c("Botswana", "ASCII", "Wasserschwein","Erde","12", "Indien","Arm
 #(potentially) problematic answers
 ppa <- c("Eignungstest als Professor", "Erfahren, inwiefern die innere Haltung als \"Professor\" die Performance im Wissenstest beeinflusst.",
          "wenn man sich vorher als typischer Professor vorstellt, ist man besser im Wissenstest\n", "Priming von Stereotypen", 
-         "Ich glaube es ging um die Verbindung vom ersten Teil (Professor) mit dem zweiten Teil")
+         "Ich glaube es ging um die Verbindung vom ersten Teil (Professor) mit dem zweiten Teil", "Evtl. Stereotype und Vorurteile. Oder als priming für die zweite Studie?
+")
 dat <- all_subjects %>% dplyr::filter(!(purpose %in% ppa))
 #print(dat$prime_response)
 
