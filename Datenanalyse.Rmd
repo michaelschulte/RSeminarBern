@@ -64,11 +64,13 @@ alpha(trivia_red2) # raises alpha 0.64 (no more r.drop < .10 after this round)
 
 # Build new variables correct_raw_red and correct_pct_red
 profdata <- profdata %>% mutate(correct_raw_red = triv1_correct + triv4_correct + 
-                                  triv5_correct + triv7_correct  +
-                                          triv8_correct + triv10_correct + triv11_correct + triv12_correct + triv15_correct +
-                                          triv16_correct + triv17_correct + triv18_correct + triv19_correct + triv21_correct +
-                                          triv22_correct + triv23_correct + triv25_correct + triv26_correct + triv27_correct +
-                                          triv28_correct + triv29_correct,
+                                triv5_correct + triv7_correct + triv8_correct + 
+                                triv10_correct + triv11_correct + triv12_correct + 
+                                triv15_correct + triv16_correct + triv17_correct + 
+                                triv18_correct + triv19_correct + triv21_correct +
+                                triv22_correct + triv23_correct + triv25_correct + 
+                                triv26_correct + triv27_correct + triv28_correct + 
+                                triv29_correct,
                                 correct_pct_red = correct_raw_red/21*100)
 names(profdata)
 
@@ -98,6 +100,8 @@ p + geom_histogram(binwidth = 2,
                    position = "identity",
                    alpha = 0.8) +
   facet_wrap(~ prime_condition) +
+      xlab('Bedingung') +
+    ylab('Prozent korrekt') +
   theme_bw()
 
 
