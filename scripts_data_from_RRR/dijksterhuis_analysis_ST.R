@@ -15,7 +15,7 @@ library('data.table')
 library("BayesFactor")
 library("ggplot2")
 library("stringr")
-
+library("readxl")
 
 #First read in all data files and bind into a single data frame.
 setwd(paste(getwd(), "RawData", sep = "/"))
@@ -23,11 +23,16 @@ setwd(paste(getwd(), "RawData", sep = "/"))
 all_subjects <- as.data.frame(rbindlist(lapply(list.files(
                         pattern = '[[:digit:]]_[[:alpha:]]*.*.csv'), read.csv)))
 
+#import backup data and merge it together
+backup <- readxl::read_xls("backup_data.xls")
+all_subjects <- dplyr::bind_rows(all_subjects, backup)
 #change values of sex_r and age
 placeholder <- all_subjects$sex_r
 all_subjects$sex_r <- all_subjects$age
 all_subjects$age <- placeholder
 placeholder <- NULL
+
+
 
 #get all column names and hupf column names and all correct answers
 hupf_corr_cols <- paste(rep('triv', 3), c(8, 13, 23), rep('_correct', 3), sep='')
@@ -68,7 +73,7 @@ dat$hupf_corr_pct <- (rowSums(dat[,hupf_corr_cols] == TRUE)/3)*100
 #now first set the wd back to outside the folder
 #setwd(qdap::beg2char(getwd(), char = "GitHub/RSeminarBern", include = TRUE))
 
-write.csv(dat, paste(labname, '_data_complete.csv', sep=''), row.names = FALSE)
+write.csv(dat, paste(labname, '_data_complete_withBackup.csv', sep=''), row.names = FALSE)
 
 
 
