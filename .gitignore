@@ -45,3 +45,5 @@ rsconnect/
 .Rproj.user2
 
 .Rproj.user
+
+.DS_Store
