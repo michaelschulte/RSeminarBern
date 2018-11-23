@@ -20,6 +20,7 @@ profdata <- read_csv("RawData/LABNAME_data_complete.csv") %>%
   mutate(Sex = as.factor(Sex),
          sex_r = as.factor(sex_r),
          prime_condition = as.factor(prime_condition),
+         prime_code = as.factor(prime_code),
          year = as.factor(year),
          link_yn = as.factor(link_yn),
          thinking_yn = as.factor(thinking_yn),
@@ -62,7 +63,8 @@ alpha(trivia_red2) # raises alpha 0.64 (no more r.drop < .10 after this round)
 ```{r}
 
 # Build new variables correct_raw_red and correct_pct_red
-profdata <- profdata %>% mutate(correct_raw_red = triv1_correct + triv4_correct + triv5_correct + triv7_correct  + 
+profdata <- profdata %>% mutate(correct_raw_red = triv1_correct + triv4_correct + 
+                                  triv5_correct + triv7_correct  +
                                           triv8_correct + triv10_correct + triv11_correct + triv12_correct + triv15_correct +
                                           triv16_correct + triv17_correct + triv18_correct + triv19_correct + triv21_correct +
                                           triv22_correct + triv23_correct + triv25_correct + triv26_correct + triv27_correct +
@@ -148,7 +150,7 @@ library(jmv)
 ```{r}
 # CI for Cohen's d
 library(psych)
-cohen.d.ci(c(0.288, 0.272), n1 = c(33, 33), n2 = c(52, 52), alpha = 0.10)
+cohen.d.ci(c(0.269, 0.281), n1 = c(33, 33), n2 = c(47, 47), alpha = 0.10)
 
 # Power analysis for small telescopes approach (Dijksterhuis and Schulte data) (setzt hier eig. equal n voraus...)
 library(pwr)
