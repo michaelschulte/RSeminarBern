@@ -95,7 +95,8 @@ p <- testdata %>%
 p + geom_histogram(binwidth = 2, 
                    position = "identity",
                    alpha = 0.8) +
-  facet_wrap(~ prime_condition)
+  facet_wrap(~ prime_condition) +
+  theme_bw()
 
 
 # one nice figure prime X gender
