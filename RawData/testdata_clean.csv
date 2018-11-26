@@ -67,3 +67,5 @@ Subject.ID,sex_r,prime_code,prime_condition,age,link_yn,thinking_yn,prior_hool,p
 205,weiblich,0,Fußballhooligan,21,nein,nein,ja,88,20,21,5,14,46.6666666666667,10,47.61904761904761
 206,männlich,0,Fußballhooligan,22,ja,nein,ja,85,23,36,6,25,83.3333333333333,20,95.23809523809523
 207,männlich,1,Universitätsprofessor,42,nein,nein,ja,85,15,60,15,18,60,15,71.42857142857143
+188,weiblich,0,Fußballhooligan,24,nein,nein,ja,60,20,NA,NA,18,60,14,66.66666666666666
+147,männlich,1,Universitätsprofessor,21,nein,nein,ja,65,15,NA,NA,16,53.3333333333333,11,52.38095238095239
