@@ -74,7 +74,7 @@ dat$hupf_corr_pct <- (rowSums(dat[,hupf_corr_cols] == TRUE)/3)*100
 #now first set the wd back to outside the folder
 #setwd(qdap::beg2char(getwd(), char = "GitHub/RSeminarBern", include = TRUE))
 
-write.csv(dat, paste(labname, '_data_complete_withBackup.csv', sep=''), row.names = FALSE)
+write.csv(dat, paste(labname, '_data_complete.csv', sep=''), row.names = FALSE)
 
 
 
