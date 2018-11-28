@@ -1,6 +1,6 @@
 ---
 title: 'Datenanalyse für die Replikationsstudie "Professor-Priming"'
-author: B. Mayer, S. Thoma, M. Schulte-Mecklenbeck, J. Hupfeld,  C. Zurbrügg
+author: B. Mayer, S. Thoma, M. Schulte-Mecklenbeck, J. Hupfeld, C. Zurbrügg
 subtitle: 'Interfakultäres Seminar "Bessere Forschung machen: Replikation, Reproduzierbarkeit und Open Science"'
 
 output: slidy_presentation
@@ -13,10 +13,11 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, cache = TRU
 
 ## 1. Daten einlesen
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE}
 library(tidyverse)
 library(haven)
-profdata <- read_csv("RawData/LABNAME_data_complete.csv") %>%
+# Daten einlesen und Faktoren definieren
+profdata <- read_csv("RawData/LABNAME_data_complete_withBackup.csv") %>%
   mutate(Sex = as.factor(Sex),
          sex_r = as.factor(sex_r),
          prime_condition = as.factor(prime_condition),
@@ -24,172 +25,212 @@ profdata <- read_csv("RawData/LABNAME_data_complete.csv") %>%
          year = as.factor(year),
          link_yn = as.factor(link_yn),
          thinking_yn = as.factor(thinking_yn),
-         prior_hool = as.factor(prior_hool)) %>% 
-  rename(prof_int = Universitätsprofessor_int_rating,
-         prof_acc = Universitätsprofessor_acc_rating,
-         hool_int = Fußballhooligan_int_rating,
-         hool_acc = Fußballhooligan_acc_rating)
+         prior_hool = as.factor(prior_hool))
 
 head(profdata)
-
-trivia <- profdata %>%
-  select(ends_with("correct")) %>% 
-  transmute_all(as.numeric) %>% 
-  drop_na()
 ```
 
 
 ## 2. Reliabilitätsanalyse
 
 ```{r}
+# Erstellen eines trivia-Datensatzes und Definition aller (vorher logischen) 
+# trivia items als numerische Variablen
+trivia <- profdata %>%
+  select(ends_with("correct")) %>% 
+  transmute_all(as.numeric) %>% 
+  drop_na()
+
+# Reliabilitätsanalyse mit Funktion alpha() aus Package psych
+# Berechnet bei binären Variablen wie hier den Kuder-Richardson 20 Koeffizienten
+# Ergebnis: alpha = .52, std. alpha = .55
 library(psych)
 trivia <- as.data.frame(trivia)
 alpha(trivia)
 
-# Remove items with r.drop < .10
+# Entferne Items, die eine korrigierte Item-Total-Korrelation r.drop < .10 aufweisen
 trivia_red <- trivia %>%
-  select(-c(triv2_correct, triv6_correct, triv9_correct, triv13_correct, triv14_correct, triv20_correct, triv24_correct))  
-alpha(trivia_red) # raises alpha from 0.55 to 0.63 by removing trivia items with negative or no relation with total 
+  select(-c(triv2_correct, triv3_correct, triv5_correct, triv6_correct, triv9_correct, 
+            triv13_correct, triv14_correct, triv20_correct, triv22_correct, triv24_correct))
 
-# Remove items with r.drop < .10 (Round 2)
-trivia_red2 <- trivia_red %>%
-  select(-triv3_correct)
-alpha(trivia_red2) # raises alpha 0.64 (no more r.drop < .10 after this round) 
+# Reliabilitätsanalyse mit dem reduzierten Items-Satz (verkürzte Ausgabe über summary())
+rel_red <- alpha(trivia_red) 
+summary(rel_red)
+# Analyse mit dem reduzierten Items-Satz ergibt ein alpha = 0.62 / std. alpha = .63
+# keine weiteren r.drop < .10
+
+
+# Bildung der neuen Variablen correct_raw_red and correct_pct_red 
+# (aufgrund Reliabilitätsanalyse)
+profdata <- profdata %>% 
+  mutate(correct_raw_red = triv1_correct + triv4_correct + triv7_correct  +
+           triv8_correct + triv10_correct + triv11_correct + triv12_correct + 
+           triv15_correct + triv16_correct + triv17_correct + triv18_correct + 
+           triv19_correct + triv21_correct + triv23_correct + triv25_correct + 
+           triv26_correct + triv27_correct + triv28_correct + triv29_correct,
+         correct_pct_red = correct_raw_red/19*100)
 ```
 
 
-## 3. Data and Descriptives
+## 3. Deskriptive Statistiken
+
+Aus dem Datensatz ausgeschlossen wurden bereits 5 Personen, die in der Variable `purpose` äusserten, dass es eine Verbindung zwischen den beiden Studien geben könnte. Personen, die dort keinen solchen Verdacht äusserten, in den folgenden Fragen `link_yn` und `thinking_yn` aber angaben, dass sie glauben, dass es eine Verbindung zwischen den beiden Studien gab bzw. dass ihre Antworten in der zweiten Studie durch die erste Studie beeinflusst wurden, werden weiter unten unter *6. Weitere Analysen* ausgeschlossen.
+
+$~$
 
 ```{r}
-
-# Build new variables correct_raw_red and correct_pct_red
-profdata <- profdata %>% mutate(correct_raw_red = triv1_correct + triv4_correct + 
-                                  triv5_correct + triv7_correct  +
-                                          triv8_correct + triv10_correct + triv11_correct + triv12_correct + triv15_correct +
-                                          triv16_correct + triv17_correct + triv18_correct + triv19_correct + triv21_correct +
-                                          triv22_correct + triv23_correct + triv25_correct + triv26_correct + triv27_correct +
-                                          triv28_correct + triv29_correct,
-                                correct_pct_red = correct_raw_red/21*100)
-names(profdata)
-
-# Reduced dataset for tests
-testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, age, link_yn, thinking_yn, prior_hool, prof_int, 
-                                prof_acc, hool_int, hool_acc, correct_raw, correct_pct, correct_raw_red, correct_pct_red)
-
+# Erstellen eines Datensatzes, der nur die für die Analysen relevanten Variablen enthält
+testdata <- profdata %>% select(Subject.ID, sex_r, prime_code, prime_condition, 
+                                age, link_yn, thinking_yn, prior_hool, correct_raw, 
+                                correct_pct, hupf_corr_pct, correct_raw_red, correct_pct_red)
+# write_csv(testdata, path = "RawData/testdata.csv")
+# Deskriptive Statistiken für diesen Datensatz
 summary(testdata)
-sort(testdata$age) # look for Pensionaere
+# Prime Hooligan n = 41, Prime Professor n = 51 (Gesamt: n = 92)
 
-# Check sex distribution across prime conditions
+# Betrachten der Altersverteilung
+sort(testdata$age) 
+# Dezile der Altersverteilung
+quantile(testdata$age, seq(0, 1, 0.1), type = 2) 
+# 90 % der Teilnehmer sind <= 28 Jahre,
+# je 1 Person war 42, 64, 67, bzw. 68 Jahre alt
+
+# Geschlechterverteilung über die Prime-Bedingungen
 table(testdata$prime_condition, testdata$sex_r)
+# Aus Neugier noch ein Chi-Quadrat-Test auf Unabhängigkeit der Merkmale 
+# Prime-Bedingung und Geschlecht
+chisq.test(testdata$prime_condition, testdata$sex_r, correct = FALSE)
 
-# Descriptive stats by group
+# Deskriptive Statistiken % korrekt Prime x Geschlecht
 testdata %>% 
   group_by(prime_condition, sex_r) %>% 
   summarise(corr_pct_M = round(mean(correct_pct), 2),
             corr_pct_SD = round(sd(correct_pct), 2))
-
-# Trivia distribution
-p <- testdata %>% 
-    select(correct_raw, correct_raw_red, prime_condition) %>%
-    drop_na() %>% 
-    ggplot(mapping = aes(x = correct_raw, y = ..density..,fill = prime_condition))
-
-p + geom_histogram(binwidth = 2, 
-                   position = "identity",
-                   alpha = 0.8) +
-  facet_wrap(~ prime_condition) +
+# Plot dazu
+ggplot(testdata, aes(x = sex_r, y = correct_pct, group = prime_condition, 
+                     colour = prime_condition)) +
+  stat_summary(geom = "point", fun.y = mean, position = position_dodge(width = 0.1)) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, width = 0.1, 
+               position = position_dodge(width = 0.1)) +
+  ylim(0,100) +
+  xlab('Geschlecht') +
+  ylab('Prozent korrekt') +
+  labs(color = "Prime-Bedingung") +
   theme_bw()
 
-
-# one nice figure prime X gender
-ggplot(testdata, aes(sex_r, correct_pct, group = prime_condition, colour = prime_condition)) +
-    stat_summary(geom = "point", fun.y = mean, position = position_dodge(width = 0.1)) +
-    stat_summary(geom = "errorbar", fun.data = mean_se, width = 0.1, position = position_dodge(width = 0.1)) +
-    ylim(0,100) +
-    xlab('Geschlecht') +
-    ylab('Prozent korrekt') +
-    theme_bw()
+# Betrachten der Verteilung der % korrekt-Werte zur Identifikation von Ausreissern
+ggplot(testdata, aes(x = prime_condition, correct_pct)) +
+  geom_boxplot(aes(colour = prime_condition)) +
+  geom_jitter(width = 0.1, alpha = 0.8) +
+  ylim(0,100) +
+  xlab('Prime-Bedingung') +
+  ylab('Prozent korrekt') +
+  guides(colour = FALSE) +
+  theme_bw()
 ```
+
+$~$
+
+Boxplot zeigt nur in der Hooligan-Bedingung genau *ein* Ausreisserwert, der aber nicht sonderlich extrem zu sein scheint (eine Person hat 90 % richtig, siehe max-Wert bei `correct_pct`).
 
 ## 4. T-Tests
 
 ```{r}  
-# T-Tests (raw and percentage)
+# T-Tests (gerichtete Alternativhypothese mu1 < mu2) für die Trivia-Rohwerte 
+# (correct_raw) sowie für die Trivia-Prozentwerte (correct_pct) (muss äquivalent sein)
 library(car)
 leveneTest(testdata$correct_raw, testdata$prime_condition, center = median)
-t.test(correct_raw ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata)
-t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata)
-t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "two.sided", data = testdata)
+t.test(correct_raw ~ prime_condition, var.equal = TRUE, alternative = "less",
+       data = testdata)
+t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less", 
+       data = testdata)
+# Zum Vergleich ein T-Test mit ungerichteter Alternativhypothese (2-seitiger Test)
+t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "two.sided", 
+       data = testdata)
 
 
-# T-Tests (reduced trivia variable / percentage)
+# T-Test für die reduzierte Trivia-Variable
 leveneTest(testdata$correct_pct_red, testdata$prime_condition, center = median)
-t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata)
+t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less", 
+       data = testdata)
 
-# 2-factorial ANOVA
-model1 <- lm(correct_raw ~ prime_condition*sex_r, data = testdata)
-summary(model1)
-Anova(model1, type = 3)
-
-# T-Test again incl. Cohen's d
-library(jmv)
- ttestIS(
-    data = testdata,
-    vars = c("correct_pct","correct_pct_red"),
-    group = "prime_code",
-    eqv = TRUE,
-    meanDiff = TRUE,
-    effectSize = TRUE,
-    ci = TRUE,
-    desc = TRUE,
-    plots = TRUE)
+# T-Test für die Variable hupf_corr_pct (Mittelwert der von Jörg Hupfeld hinzugefügten Items)
+leveneTest(testdata$hupf_corr_pct, testdata$prime_condition, center = median)
+t.test(hupf_corr_pct ~ prime_condition, var.equal = TRUE, alternative = "less", 
+       data = testdata)
 ```
 
-## 5. Effektgroessen & Power
+$~$
+
+Die Ergebnisse zeigen, dass entgegen unserer Erwartung (im Sinne der Alternativhypothese) Personen, die mit *Fussballhooligan* geprimed wurden, (deskriptiv) einen höheren Prozentsatz an richtig beantworteten Trivia-Items aufwiesen als Personen, die mit *Universitaetsprofessor* geprimed wurden. Damit kann unsere gerichtete Alternativhypothese (*MW Fussballhooligan < MW Universitaetsprofessor* bzw. negative Differenz der Mittelwerte) natürlich nicht mehr signifikant werden. Dies zeigt sich in den T-Tests unabhängig davon, ob wir die Variable `correct_pct` (alle Trivia Items) oder die Variable `correct_pct_red` (19 Trivia Items, ohne die aufgrund der Reliabilitätsanalyse ausgeschlossenen) betrachten. Auch bei den drei neu hinzufügten Wissensfragen (`hupf_corr_pct`) zeigt sich kein anderes Ergebnis.
+
+## 5. Small Telescopes Approach
 
 ```{r}
-# CI for Cohen's d
-library(psych)
-cohen.d.ci(c(0.269, 0.281), n1 = c(33, 33), n2 = c(47, 47), alpha = 0.10)
+# Berechnung von Cohen's d (inkl. Konfidenzintervall) mit der Funktion cohen.d() aus 
+# Package effsize. Im psych-Package, das wir oben benutzen, gibt es auch eine 
+# (schlechtere) Funktion cohen.d() Damit diese nicht aufgerufen wird, hier direkt 
+# mit effsize::cohen.d() aufrufen
+effsize::cohen.d(testdata$correct_pct, testdata$prime_condition, conf.level = 0.90, 
+                 noncentral = TRUE)
+effsize::cohen.d(testdata$correct_pct_red, testdata$prime_condition, conf.level = 0.90, 
+                 noncentral = TRUE)
 
-# Power analysis for small telescopes approach (Dijksterhuis and Schulte data) (setzt hier eig. equal n voraus...)
+# Für den Small Telescopes Approach berechnen wir den Effekt, der in der Originalstudie 
+# mit einer Power von 0.33 gefunden hätte werden können. Wenn die Replikationseffektgrösse 
+# signifikant kleiner als ein so definierter "kleiner Effekt" ist, kann man von einer 
+# signifikanten Nicht-Replikation des Effekts sprechen (Simonsohn, 2015). Wir betrachten 
+# hier sowohl die Studie von Dijksterhuis und van # Knippenberg (1998) als auch die 
+# RRR-Studie von Schulte-Mecklenbeck, Ackermann und Neeser (2018) # als "Originalstudie".
+# Wir benutzen die Funktion pwr.t2n.test() aus dem Package pwr.
+
 library(pwr)
-dijkster_tel <- pwr.t.test(n = 22, d = NULL, sig.level = 0.05, power = 0.33, 
-    type = c("two.sample"),
-    alternative = c("less"))
-
-schulte_tel <- pwr.t.test(n = 55, d = NULL, sig.level = 0.05, power = 0.33, 
-    type = c("two.sample"),
-    alternative = c("less"))
-
-dijkster_tel  # jpower: -0.3738 (n1 = 21, n2 = 22) statt wie hier: -0.3693
-schulte_tel   # jpower: -0.2322 (n1 = 50, n2 = 60) statt wie hier: -0.2312
-
-
-
-
-# CI for Cohen's d
-library(psych)
-cohen.d.ci(c(0.288, 0.272), n1 = c(33, 33), n2 = c(52, 52), alpha = 0.10) 
-# mit jetzigen Daten sowohl dijkster_tel als auch schulte_tel nicht im CI
-
-
-# Berechnung von Cohen's d aus Dijksterhuis (1998)
-sqrt(7.09)*sqrt((21 + 22)/(21*22))
+# Small Telescope Effect Size für Dijksterhuis & van Knippenberg (1998, Experiment 4)
+pwr.t2n.test(n1 = 21, n2 = 22, d = NULL,  sig.level = 0.05, power = 0.33, 
+             alternative = "less")
+# Small Telescope Effect Size für Schulte-Mecklenbeck et al. (2018)
+pwr.t2n.test(n1 = 50, n2 = 60, d = NULL,  sig.level = 0.05, power = 0.33, 
+             alternative = "less")
 ```
 
-## 6. Analysen mit 'clean' data
+$~$
+
+Für den Small Telescopes Approach wird ein einseitiger Signifikanztest durchgeführt. Es wird also überprüft, ob die in der Replikationsstudie erhaltene Effektgrösse signifikant kleiner ist als die durch den Small Telescopes Approach definiert *kleinen* Effekte. Dieser Test lässt sich über ein 90 %-Konfidenzintervall von Cohen's d durchführen. Wenn der Small Telescopes Effekt der Originalstudie **nicht** im KI enthalten ist, handelt es sich um eine signifikante Abweichung und damit um eine signifikante Nicht-Replikation. In unserem Fall ist das KI von Cohen's *d* für die Variable `correct_pct` $[-0.0616, 0.6320]$ und für die Variable `correct_pctred` $[-0.0661, 0.6274]$. In beiden ist weder der Small Telescopes Effekt von $-0.3738$ (Dijksterhuis & van Knippenberg, 1998) noch der $-0.2322$ (Schulte-Mecklenbeck et al., 2018) enthalten. Die Small Telescopes Analyse in Bezug auf Schulte-Mecklenbeck et al. (2018) stellt nur eine Zusatzanalyse dar, ausschlaggebend ist die Small Telescopes Analyse in Bezug auf die Originalstudie von Dijksterhuis und van Knippenberg (1998).
+
+## 6. Weitere Analysen
+
+Zuerst wurde der T-Test nochmals für beide Variablen (`correct_pct` und `correct_pct_red`) unter Ausschluss von Personen gerechnet, die angaben zu glauben, dass es eine Verbindung zwischen den beiden Studien gab (`link_yn`) bzw. dass ihre Antworten in der zweiten Studie durch den Inhalt der ersten Studie beeinflusst wurden (`thinking_yn`). Ausserdem wurde eine Analyse durchgeführt, in der Personen ausgeschlossen wurden, die angaben, das Wort "Fussballhooligan" nicht gekannt zu haben.
+
+$~$
 
 ```{r}
-# Weitere Analysen ohne Pensionaere, ohne Leute, die Einfluss annahmen sowie ohne Leute, die "Hool" nicht kannten
+# Analyse mit n = 84 Personen, die nicht glaubten, dass sie durch Studie 1 
+# beeinflusst wurden
+testdata_nothink <- testdata %>% 
+  filter(thinking_yn == "nein")
+t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less",
+       data = testdata_nothink)
+t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less",
+       data = testdata_nothink)
 
-testdata_clean <- testdata %>% 
-  filter(age <= 42 & thinking_yn == "nein" & prior_hool == "ja")
-write_csv(x = testdata_clean, path = "RawData/testdata_clean.csv")
+# Analyse mit n = 43 Personen, die (auf Nachfrage) nicht glaubten, dass es eine 
+# Verbindung zwischen den beiden Studien gab
+testdata_nolink <- testdata %>% 
+  filter(link_yn == "nein")
+t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less", 
+       data = testdata_nolink)
+t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less", 
+       data = testdata_nolink)
 
-testdata_clean
-leveneTest(testdata_clean$correct_pct_red, testdata_clean$prime_condition, center = median)
-t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata_clean)
-t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less", data = testdata_clean)
+# Analyse mit n = 78 Personen, die angaben, dass sie den Begriff Hooligan kannten
+testdata_hoolyeah <- testdata %>% 
+  filter(prior_hool == "ja")
+t.test(correct_pct ~ prime_condition, var.equal = TRUE, alternative = "less", 
+       data = testdata_hoolyeah)
+t.test(correct_pct_red ~ prime_condition, var.equal = TRUE, alternative = "less", 
+       data = testdata_hoolyeah)
 ```
 
+$~$
+
+Durch die Reduktion der Stichprobe um diejenigen Personen, die auf Nachfrage angaben, eine Verbindung zwischen den beiden Studien erkannt zu haben, ergab keine wesentlichen Änderungen zur Analyse mit dem vollständigen Datensatz oben (aus dem bereits Personen ausgeschlossen worden waren, die von sich aus einen Zusammenhang der Studien vermuteten). 
