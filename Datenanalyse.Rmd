@@ -1,6 +1,6 @@
 ---
 title: 'Datenanalyse für die Replikationsstudie "Professor-Priming"'
-author: B. Mayer, S. Thoma, M. Schulte-Mecklenbeck, J. Hupfeld, C. Zurbrügg
+author: B. Mayer, S. Thoma, M. Schulte-Mecklenbeck, J. Hupfeld,  C. Zurbrügg
 subtitle: 'Interfakultäres Seminar "Bessere Forschung machen: Replikation, Reproduzierbarkeit und Open Science"'
 
 output: slidy_presentation
@@ -130,6 +130,7 @@ ggplot(testdata, aes(x = prime_condition, correct_pct)) +
   ylab('Percentage correct') +
   guides(colour = FALSE) +
   theme_bw()
+
 ```
 
 $~$
