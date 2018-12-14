@@ -25,7 +25,10 @@ profdata <- read_csv("RawData/LABNAME_data_complete_withBackup.csv") %>%
          year = as.factor(year),
          link_yn = as.factor(link_yn),
          thinking_yn = as.factor(thinking_yn),
-         prior_hool = as.factor(prior_hool))
+         prior_hool = as.factor(prior_hool),
+         prime_condition = recode_factor(prime_condition, 
+                                  Fussballhooligan = "Hooligan",
+                                  Universitaetsprofessor = "Professor"))
 
 head(profdata)
 ```
@@ -103,9 +106,9 @@ chisq.test(testdata$prime_condition, testdata$sex_r, correct = FALSE)
 
 # Deskriptive Statistiken % korrekt Prime x Geschlecht
 testdata %>% 
-  group_by(prime_condition, sex_r) %>% 
-  summarise(corr_pct_M = round(mean(correct_pct), 2),
-            corr_pct_SD = round(sd(correct_pct), 2))
+  group_by(prime_condition) %>% 
+  summarise(corr_pct_M = round(mean(correct_pct_red), 2),
+            corr_pct_SD = round(sd(correct_pct_red), 2))
 # Plot dazu
 ggplot(testdata, aes(x = sex_r, y = correct_pct, group = prime_condition, 
                      colour = prime_condition)) +
@@ -123,8 +126,8 @@ ggplot(testdata, aes(x = prime_condition, correct_pct)) +
   geom_boxplot(aes(colour = prime_condition)) +
   geom_jitter(width = 0.1, alpha = 0.8) +
   ylim(0,100) +
-  xlab('Prime-Bedingung') +
-  ylab('Prozent korrekt') +
+  xlab('Prime Condition') +
+  ylab('Percentage correct') +
   guides(colour = FALSE) +
   theme_bw()
 ```
